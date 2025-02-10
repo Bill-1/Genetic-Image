@@ -55,12 +55,18 @@ public class Individual {
         double chance = Math.random();
         int numTriangles;
         if (chance < 0.5) {
-            numTriangles = Math.min(this.triangles.size(), other.triangles.size());
+            numTriangles = Math.max(this.triangles.size(), other.triangles.size());
             for (int i = 0; i < numTriangles; i++) {
-                Triangle triangle1 = this.triangles.get(i);
-                Triangle triangle2 = other.triangles.get(i);
-                Triangle blendedTriangle = triangle1.blendTriangle(triangle2);
-                child.triangles.add(blendedTriangle);
+                if (i >= other.triangles.size()) {
+                    child.triangles.add(triangles.get(i));
+                } else if (i >= this.triangles.size()) {
+                    child.triangles.add(other.triangles.get(i));
+                } else {
+                    Triangle triangle1 = this.triangles.get(i);
+                    Triangle triangle2 = other.triangles.get(i);
+                    Triangle blendedTriangle = triangle1.blendTriangle(triangle2);
+                    child.triangles.add(blendedTriangle);
+                }
             }
         } else {
             numTriangles = Math.max(this.triangles.size(), other.triangles.size());

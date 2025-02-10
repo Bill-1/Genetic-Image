@@ -71,6 +71,7 @@ public class GeneticAlgo {
             for (int i = 0; i < population / 2; i++) {
                 parents[i] = scores.get(i).individual;
             }
+            System.out.println("..." + scores.get(0).loss + "..." + scores.get(1).loss);
             for (int i = 0; i < population; i++) {
                 Individual parent1 = parents[rand.nextInt(parents.length)];
                 Individual parent2 = parents[rand.nextInt(parents.length)];
