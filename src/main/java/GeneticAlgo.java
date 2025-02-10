@@ -2,20 +2,36 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
-
-import javafx.util.Pair;
 
 public class GeneticAlgo {
     public int height;
     public int width;
     public int[][][] rgbTarget;
 
-    public void run(BufferedImage image, String outputPath, int population) {
+    public void run(BufferedImage image, String outputPath, int population, int chromosomeNumber) {
+        Path path = Paths.get(outputPath);
+        try {
+            if (Files.notExists(path)) {
+                Files.createDirectories(path);
+                System.out.println("Directory created at: " + outputPath);
+            } else if (Files.isDirectory(path)) {
+                System.out.println("Directory exists at: " + outputPath);
+            } else {
+                System.out.println("A file with the same name already exists at: " + outputPath);
+            }
+        } catch (IOException e) {
+            System.err.println("An error occurred while checking or creating the directory: " + e.getMessage());
+        }
         Random rand = new Random();
         this.height = image.getHeight();
         this.width = image.getWidth();
@@ -34,46 +50,41 @@ public class GeneticAlgo {
         Main.target =  new Canvas(height, width, rgbTarget);
         Main.visited = new boolean[Main.target.height][Main.target.width];
         Individual[] individuals = new Individual[population];
+
+        System.out.println("Generating individuals...");
         for (int i = 0; i < population; i++) {
-            individuals[i] = new Individual(height, width);
+            individuals[i] = new Individual(height, width, chromosomeNumber);
         }
+//        System.out.println("Generating individuals...");
         int itr = 0;
-        Pair<Double, Individual> bestParent1 = null;
-        Pair<Double, Individual> bestParent2 = null;
+
         while(true) {
+            List<Pa> scores = new ArrayList<>();
             System.out.println("Process begins...");
-            for (Individual individual : individuals) {
-                Canvas canvas = new Canvas(height, width);
-                canvas.render(individual);
-                individual.mutate(0.5, canvas);
-                if (bestParent1 == null) {
-                    bestParent1 = new Pair<>(canvas.currentLoss, individual);
-                } else if (bestParent2 == null) {
-                    if (canvas.currentLoss < bestParent1.getKey()) {
-                        bestParent2 = bestParent1;
-                        bestParent1 = new Pair<>(canvas.currentLoss, individual);
-                    } else {
-                        bestParent2 = new Pair<>(canvas.currentLoss, individual);
-                    }
-                } else {
-                    if (canvas.currentLoss < bestParent1.getKey()) {
-                        bestParent2 = bestParent1;
-                        bestParent1 = new Pair<>(canvas.currentLoss, individual);
-                    } else if (canvas.currentLoss < bestParent2.getKey()) {
-                        bestParent2 = new Pair<>(canvas.currentLoss, individual);
-                    }
-                }
-                canvas = null;
+            for (int i = 0; i < population; i++) {
+                Individual individual = individuals[i];
+                individual.mutate();
+                scores.add(new Pa(individual.getLoss(), individual));
             }
-            Individual offSpring = bestParent1.getValue().crossBreed(bestParent2.getValue());
-            Arrays.fill(individuals, offSpring);
+            Collections.sort(scores);
+            Individual[] parents = new Individual[population / 2];
+            for (int i = 0; i < population / 2; i++) {
+                parents[i] = scores.get(i).individual;
+            }
+            for (int i = 0; i < population; i++) {
+                Individual parent1 = parents[rand.nextInt(parents.length)];
+                Individual parent2 = parents[rand.nextInt(parents.length)];
+                Individual child = parent1.crossBreed(parent2);
+                individuals[i] = child;
+            }
             itr++;
             System.out.println(itr);
             if (itr % 5 == 0) {
+                Individual bestSpeciman = scores.get(0).individual;
                 Canvas canvas = new Canvas(height, width);
-                canvas.render(offSpring);
-                System.out.println("Current loss: " + canvas.currentLoss);
-                System.out.println("Number of triangles: " + offSpring.triangles.size());
+                canvas.render(bestSpeciman);
+                System.out.println("Current loss: " + bestSpeciman.getLoss());
+                System.out.println("Number of triangles: " + bestSpeciman.triangles.size());
                 BufferedImage paintedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
                 for (int i = 0; i < height; i++) {
                     for (int j = 0; j < width; j++) {

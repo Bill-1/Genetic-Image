@@ -12,12 +12,9 @@ public class Main {
     public static boolean[][] visited;
 
     public static void main(String[] args) throws IOException {
-        String name = "lisa";
+        String name = "night";
         String filePath = "./src/main/resources/images/" + name + ".png";
         String outputPath = "./src/main/resources/images/" + name + "/";
-        int frameLimit = 10;
-        int areaLimit = 50;
-        int numberOfIterations = 30000;
 
         File imageFile = new File(filePath);
         if (!imageFile.exists()) {
@@ -32,6 +29,6 @@ public class Main {
         }
 
         GeneticAlgo ga = new GeneticAlgo();
-        ga.run(image, outputPath, 50);
+        ga.run(image, outputPath, 100, 50);
     }
 }
