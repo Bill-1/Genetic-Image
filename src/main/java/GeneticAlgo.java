@@ -1,7 +1,9 @@
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -58,6 +60,15 @@ public class GeneticAlgo {
 //        System.out.println("Generating individuals...");
         int itr = 0;
 
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("../resources/data.ser"))) {
+                oos.writeObject(individuals);
+                System.out.println("Serialization successful: Array written to data.ser");
+            } catch (IOException e) {
+                System.err.println("Serialization failed:");
+                e.printStackTrace();
+            }
+        }));
         while(true) {
             List<Pa> scores = new ArrayList<>();
             System.out.println("Process begins...");
